@@ -129,12 +129,12 @@ export const GoalsView: FC<GoalsViewProps> = ({
       {currentGoal ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
           {/* Header Title & Badges (Matching Mockup 2) */}
-          <div style={{ textAlign: 'center', padding: '0.5rem 0' }}>
-            <h1 style={{ fontSize: '1.85rem', fontWeight: 800, marginBottom: '0.75rem', letterSpacing: '-0.02em' }}>
+          <div style={{ textAlign: 'left', padding: '0.5rem 0' }}>
+            <h1 style={{ fontSize: '1.85rem', fontWeight: 800, marginBottom: '0.75rem', letterSpacing: '-0.02em', textAlign: 'left' }}>
               {currentGoal.title}
             </h1>
 
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
               {currentArea && (
                 <span
                   style={{

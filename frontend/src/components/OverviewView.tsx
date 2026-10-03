@@ -196,14 +196,15 @@ export const OverviewView: FC<OverviewViewProps> = ({
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '0.65rem',
+                  textAlign: 'left',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span className="badge badge-active">{g.status}</span>
                   <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--primary)' }}>{g.progress}%</span>
                 </div>
-                <h3 style={{ fontSize: '1rem', lineHeight: 1.35 }}>{g.title}</h3>
-                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontStyle: 'italic', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                <h3 style={{ fontSize: '1rem', lineHeight: 1.35, textAlign: 'left' }}>{g.title}</h3>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontStyle: 'italic', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textAlign: 'left' }}>
                   "{g.why}"
                 </p>
               </div>
@@ -213,12 +214,12 @@ export const OverviewView: FC<OverviewViewProps> = ({
       )}
 
       {/* Choose a Proven Template or Build Your Own (Matching Mockup 1) */}
-      <div>
-        <div style={{ marginBottom: '1.25rem' }}>
-          <h2 style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '0.35rem' }}>
+      <div style={{ textAlign: 'left' }}>
+        <div style={{ marginBottom: '1.25rem', textAlign: 'left' }}>
+          <h2 style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '0.35rem', textAlign: 'left' }}>
             Choose a Proven Template or Build Your Own
           </h2>
-          <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>
+          <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', textAlign: 'left' }}>
             Selected high-impact life goals crafted for everyday balance. Click any template to inspect or adopt in 1-click.
           </p>
         </div>
@@ -237,6 +238,7 @@ export const OverviewView: FC<OverviewViewProps> = ({
                 justifyContent: 'space-between',
                 borderTop: `3px solid ${tpl.areaColor}`,
                 gap: '1rem',
+                textAlign: 'left',
               }}
             >
               <div>

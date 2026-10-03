@@ -59,12 +59,16 @@ export const WeeklyReviewView: FC<WeeklyReviewViewProps> = ({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       {/* Header Banner (Matching Mockup 3) */}
-      <div style={{ textAlign: 'center', padding: '0.5rem 0' }}>
-        <h1 style={{ fontSize: '1.85rem', fontWeight: 800, marginBottom: '0.4rem', letterSpacing: '-0.02em' }}>
+      <div style={{ textAlign: 'left', padding: '0.5rem 0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
+          <span className="badge badge-active">Weekly Reflection</span>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>FDR §15: Close the Execution Loop</span>
+        </div>
+        <h1 style={{ fontSize: '1.85rem', fontWeight: 800, marginBottom: '0.4rem', letterSpacing: '-0.02em', textAlign: 'left' }}>
           Weekly Review: {periodStr}
         </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem' }}>
-          Connect weekly execution to long-term outcomes
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', textAlign: 'left' }}>
+          Connect weekly execution to long-term outcomes and strategic adjustments.
         </p>
 
         {/* Stepper Progress Tabs (Matching Mockup 3) */}

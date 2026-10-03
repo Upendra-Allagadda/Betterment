@@ -77,153 +77,162 @@ export const Layout: FC<LayoutProps> = ({
           borderRadius: 0,
           borderInline: 'none',
           borderTop: 'none',
-          padding: '0.85rem 2rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          background: 'rgba(12, 16, 23, 0.92)',
+          borderBottom: '1px solid var(--border-subtle)',
+          padding: '0.75rem 0',
+          background: 'var(--bg-header)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
         }}
       >
-        {/* Brand */}
         <div
-          onClick={() => onSelectTab('daily')}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', cursor: 'pointer' }}
-        >
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 9,
-              background: 'var(--primary-gradient)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 14px var(--primary-glow)',
-            }}
-          >
-            <Target size={18} color="#ffffff" />
-          </div>
-          <span style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.03em' }}>
-            Goal<span style={{ color: 'var(--primary)' }}>OS</span>
-          </span>
-        </div>
-
-        {/* Centered Desktop Navigation Tabs */}
-        <nav
-          className="desktop-nav"
+          className="app-container"
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '1.5rem',
-            background: 'rgba(255, 255, 255, 0.03)',
-            padding: '0.35rem 1rem',
-            borderRadius: 'var(--radius-full)',
-            border: '1px solid var(--border-subtle)',
+            justifyContent: 'space-between',
+            gap: '1rem',
           }}
         >
-          {navItems.map((item) => {
-            const isActive = currentTab === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => onSelectTab(item.id)}
-                style={{
-                  position: 'relative',
-                  padding: '0.4rem 0.65rem',
-                  fontSize: '0.9rem',
-                  fontWeight: isActive ? 700 : 500,
-                  color: isActive ? 'var(--text-main)' : 'var(--text-muted)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.45rem',
-                  transition: 'color var(--transition-fast)',
-                }}
-              >
-                <span>{item.label}</span>
-                {item.badge !== undefined && (
-                  <span
-                    style={{
-                      background: 'rgba(59, 130, 246, 0.25)',
-                      color: '#60a5fa',
-                      fontSize: '0.7rem',
-                      fontWeight: 700,
-                      padding: '0.05rem 0.4rem',
-                      borderRadius: 'var(--radius-full)',
-                    }}
-                  >
-                    {item.badge}
-                  </span>
-                )}
-                {isActive && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      bottom: -6,
-                      left: '20%',
-                      right: '20%',
-                      height: 2,
-                      background: 'var(--primary)',
-                      borderRadius: 2,
-                      boxShadow: '0 0 10px var(--primary)',
-                    }}
-                  />
-                )}
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* Right Utility Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <button
-            onClick={handleSeed}
-            disabled={seeding}
-            className="btn btn-secondary"
-            title="Reload realistic sample goals and actions"
-            style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', borderRadius: 'var(--radius-full)' }}
-          >
-            <Sparkles size={14} color="#fbbf24" />
-            <span className="seed-text">{seeding ? 'Seeding...' : 'Demo Data'}</span>
-          </button>
-
-          <button
-            onClick={toggleTheme}
-            className="btn btn-icon btn-ghost"
-            title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} mode`}
-            aria-label="Toggle Theme"
-          >
-            {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
-          </button>
-
-          {/* User Profile Initial Chip (matching mockup) */}
+          {/* Brand */}
           <div
+            onClick={() => onSelectTab('daily')}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', cursor: 'pointer', flexShrink: 0 }}
+          >
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 9,
+                background: 'var(--primary-gradient)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 14px var(--primary-glow)',
+              }}
+            >
+              <Target size={18} color="#ffffff" />
+            </div>
+            <span style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.03em' }}>
+              Goal<span style={{ color: 'var(--primary)' }}>OS</span>
+            </span>
+          </div>
+
+          {/* Centered Desktop Navigation Tabs */}
+          <nav
+            className="desktop-nav"
             style={{
-              width: 34,
-              height: 34,
-              borderRadius: '50%',
-              background: 'rgba(255, 255, 255, 0.08)',
-              border: '1px solid var(--border-subtle)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              color: 'var(--text-main)',
+              gap: '1rem',
+              background: 'rgba(255, 255, 255, 0.03)',
+              padding: '0.35rem 0.85rem',
+              borderRadius: 'var(--radius-full)',
+              border: '1px solid var(--border-subtle)',
             }}
           >
-            ME
+            {navItems.map((item) => {
+              const isActive = currentTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onSelectTab(item.id)}
+                  style={{
+                    position: 'relative',
+                    padding: '0.4rem 0.65rem',
+                    fontSize: '0.88rem',
+                    fontWeight: isActive ? 700 : 500,
+                    color: isActive ? 'var(--text-main)' : 'var(--text-muted)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.45rem',
+                    transition: 'color var(--transition-fast)',
+                  }}
+                >
+                  <span>{item.label}</span>
+                  {item.badge !== undefined && (
+                    <span
+                      style={{
+                        background: 'rgba(59, 130, 246, 0.25)',
+                        color: '#60a5fa',
+                        fontSize: '0.7rem',
+                        fontWeight: 700,
+                        padding: '0.05rem 0.4rem',
+                        borderRadius: 'var(--radius-full)',
+                      }}
+                    >
+                      {item.badge}
+                    </span>
+                  )}
+                  {isActive && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        bottom: -6,
+                        left: '15%',
+                        right: '15%',
+                        height: 2,
+                        background: 'var(--primary)',
+                        borderRadius: 2,
+                        boxShadow: '0 0 10px var(--primary)',
+                      }}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* Right Utility Controls */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexShrink: 0 }}>
+            <button
+              onClick={handleSeed}
+              disabled={seeding}
+              className="btn btn-secondary"
+              title="Reload realistic sample goals and actions"
+              style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', borderRadius: 'var(--radius-full)' }}
+            >
+              <Sparkles size={14} color="#fbbf24" />
+              <span className="seed-text">{seeding ? 'Seeding...' : 'Demo Data'}</span>
+            </button>
+
+            <button
+              onClick={toggleTheme}
+              className="btn btn-icon btn-ghost"
+              title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} mode`}
+              aria-label="Toggle Theme"
+            >
+              {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+            </button>
+
+            {/* User Profile Initial Chip (matching mockup) */}
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                background: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid var(--border-subtle)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                color: 'var(--text-main)',
+              }}
+            >
+              ME
+            </div>
           </div>
         </div>
       </header>
 
       {/* Main View Container */}
       <main
+        className="app-container"
         style={{
           flex: 1,
-          maxWidth: '1180px',
-          width: '100%',
-          margin: '0 auto',
-          padding: '2rem 1.5rem 6rem 1.5rem',
+          paddingTop: '2rem',
+          paddingBottom: '6rem',
         }}
       >
         {children}
