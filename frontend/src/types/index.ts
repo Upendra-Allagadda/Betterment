@@ -111,3 +111,34 @@ export interface CapacityAssessment {
   overloadWarning?: string;
   areasBreakdown: AreaCommitment[];
 }
+
+export interface TrendPoint {
+  date: string;
+  label: string;
+  completionRate: number;
+  milestoneRate: number;
+  completedMilestones: number;
+}
+
+export interface UpcomingMilestoneItem {
+  id: string;
+  goalId: string;
+  goalTitle: string;
+  areaName: string;
+  areaColor: string;
+  title: string;
+  targetDate: string;
+  daysRemaining: number;
+  status: string;
+  health: 'Healthy' | 'At Risk' | 'Urgent' | string;
+}
+
+export interface PerformanceTrendsResponse {
+  completionTrends: TrendPoint[];
+  milestoneTrends: TrendPoint[];
+  upcomingMilestones: UpcomingMilestoneItem[];
+  averageCompletion: number;
+  totalMilestones: number;
+  completedMilestones: number;
+  activeGoalsCount: number;
+}

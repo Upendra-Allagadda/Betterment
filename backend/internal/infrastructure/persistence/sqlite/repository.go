@@ -168,6 +168,31 @@ func (r *Repository) DeleteGoal(id string) error {
 // Milestones
 // -------------------------------------------------------------
 
+func (r *Repository) ListAllMilestones() ([]*domain.Milestone, error) {
+	rows, err := r.db.SQL.Query(`
+		SELECT id, goal_id, title, target_date, status, order_index, completed_at, created_at, updated_at
+		FROM milestones ORDER BY target_date ASC, order_index ASC
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var milestones []*domain.Milestone
+	for rows.Next() {
+		var m domain.Milestone
+		var compAt sql.NullTime
+		if err := rows.Scan(&m.ID, &m.GoalID, &m.Title, &m.TargetDate, &m.Status, &m.Order, &compAt, &m.CreatedAt, &m.UpdatedAt); err != nil {
+			return nil, err
+		}
+		if compAt.Valid {
+			m.CompletedAt = &compAt.Time
+		}
+		milestones = append(milestones, &m)
+	}
+	return milestones, nil
+}
+
 func (r *Repository) ListMilestonesByGoalID(goalID string) ([]*domain.Milestone, error) {
 	rows, err := r.db.SQL.Query(`
 		SELECT id, goal_id, title, target_date, status, order_index, completed_at, created_at, updated_at

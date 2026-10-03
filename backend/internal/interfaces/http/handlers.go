@@ -262,8 +262,29 @@ func (h *Handler) AddGoalComment(w http.ResponseWriter, r *http.Request) {
 }
 
 // -------------------------------------------------------------
-// Milestones
+// Milestones & Telemetry Trends
 // -------------------------------------------------------------
+
+func (h *Handler) ListMilestones(w http.ResponseWriter, r *http.Request) {
+	milestones, err := h.svc.ListAllMilestones()
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error(), "INTERNAL_ERROR")
+		return
+	}
+	if milestones == nil {
+		milestones = []*domain.Milestone{}
+	}
+	respondJSON(w, http.StatusOK, milestones)
+}
+
+func (h *Handler) GetPerformanceTrends(w http.ResponseWriter, r *http.Request) {
+	trends, err := h.svc.GetPerformanceTrends()
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error(), "INTERNAL_ERROR")
+		return
+	}
+	respondJSON(w, http.StatusOK, trends)
+}
 
 func (h *Handler) CreateMilestone(w http.ResponseWriter, r *http.Request) {
 	var input application.CreateMilestoneInput

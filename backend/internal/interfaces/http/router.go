@@ -47,9 +47,13 @@ func NewRouter(h *Handler) http.Handler {
 		r.Post("/goals/{id}/comments", h.AddGoalComment)
 
 		// Milestones
+		r.Get("/milestones", h.ListMilestones)
 		r.Post("/milestones", h.CreateMilestone)
 		r.Patch("/milestones/{id}/toggle", h.ToggleMilestone)
 		r.Delete("/milestones/{id}", h.DeleteMilestone)
+
+		// Observability & Telemetry Trends (FDR §20)
+		r.Get("/telemetry/trends", h.GetPerformanceTrends)
 
 		// Actions
 		r.Get("/actions/daily", h.ListDailyActions)

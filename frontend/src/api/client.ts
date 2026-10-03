@@ -7,6 +7,7 @@ import type {
   GoalComment,
   WeeklyReview,
   CapacityAssessment,
+  PerformanceTrendsResponse,
   GoalStatus,
   ActionPriority,
 } from '../types';
@@ -149,6 +150,17 @@ export const api = {
   async deleteMilestone(id: string): Promise<void> {
     const res = await fetch(`${BASE_URL}/milestones/${id}`, { method: 'DELETE' });
     return handleResponse<void>(res);
+  },
+
+  async getAllMilestones(): Promise<Milestone[]> {
+    const res = await fetch(`${BASE_URL}/milestones`);
+    return handleResponse<Milestone[]>(res);
+  },
+
+  // Observability & Telemetry Trends (FDR §20)
+  async getPerformanceTrends(): Promise<PerformanceTrendsResponse> {
+    const res = await fetch(`${BASE_URL}/telemetry/trends`);
+    return handleResponse<PerformanceTrendsResponse>(res);
   },
 
   // Actions

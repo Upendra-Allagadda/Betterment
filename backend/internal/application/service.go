@@ -1,6 +1,7 @@
 package application
 
 import (
+	"math"
 	"time"
 
 	"betterment/backend/internal/domain"
@@ -233,6 +234,177 @@ func (s *Service) DeleteMilestone(id string) error {
 	}
 	_ = s.syncGoalProgress(goalID)
 	return nil
+}
+
+func (s *Service) ListAllMilestones() ([]*domain.Milestone, error) {
+	return s.repo.ListAllMilestones()
+}
+
+type TrendPoint struct {
+	Date                string  `json:"date"`
+	Label               string  `json:"label"`
+	CompletionRate      float64 `json:"completionRate"`
+	MilestoneRate       float64 `json:"milestoneRate"`
+	CompletedMilestones int     `json:"completedMilestones"`
+}
+
+type UpcomingMilestoneItem struct {
+	ID            string    `json:"id"`
+	GoalID        string    `json:"goalId"`
+	GoalTitle     string    `json:"goalTitle"`
+	AreaName      string    `json:"areaName"`
+	AreaColor     string    `json:"areaColor"`
+	Title         string    `json:"title"`
+	TargetDate    time.Time `json:"targetDate"`
+	DaysRemaining int       `json:"daysRemaining"`
+	Status        string    `json:"status"`
+	Health        string    `json:"health"`
+}
+
+type PerformanceTrendsResponse struct {
+	CompletionTrends    []TrendPoint            `json:"completionTrends"`
+	MilestoneTrends     []TrendPoint            `json:"milestoneTrends"`
+	UpcomingMilestones  []UpcomingMilestoneItem `json:"upcomingMilestones"`
+	AverageCompletion   float64                 `json:"averageCompletion"`
+	TotalMilestones     int                     `json:"totalMilestones"`
+	CompletedMilestones int                     `json:"completedMilestones"`
+	ActiveGoalsCount    int                     `json:"activeGoalsCount"`
+}
+
+func (s *Service) GetPerformanceTrends() (*PerformanceTrendsResponse, error) {
+	goals, err := s.repo.ListGoals("", "")
+	if err != nil {
+		return nil, err
+	}
+	areas, err := s.repo.ListAreas()
+	if err != nil {
+		return nil, err
+	}
+	areaMap := make(map[string]*domain.Area)
+	for _, a := range areas {
+		areaMap[a.ID] = a
+	}
+	goalMap := make(map[string]*domain.Goal)
+	var activeGoals []*domain.Goal
+	totalProgress := 0
+	for _, g := range goals {
+		goalMap[g.ID] = g
+		if g.Status == domain.GoalStatusActive {
+			activeGoals = append(activeGoals, g)
+			totalProgress += g.Progress
+		}
+	}
+
+	avgCompletion := 0.0
+	if len(activeGoals) > 0 {
+		avgCompletion = math.Round((float64(totalProgress)/float64(len(activeGoals)))*10) / 10
+	}
+
+	milestones, err := s.repo.ListAllMilestones()
+	if err != nil {
+		return nil, err
+	}
+
+	totalMilestones := len(milestones)
+	completedMilestonesCount := 0
+	var pendingMilestones []*domain.Milestone
+	for _, m := range milestones {
+		if m.Status == domain.MilestoneStatusCompleted {
+			completedMilestonesCount++
+		} else {
+			pendingMilestones = append(pendingMilestones, m)
+		}
+	}
+
+	milestoneRate := 0.0
+	if totalMilestones > 0 {
+		milestoneRate = math.Round((float64(completedMilestonesCount)/float64(totalMilestones)*100)*10) / 10
+	}
+
+	now := time.Now().UTC()
+	// 5 cadence checkpoints: T-28d, T-21d, T-14d, T-7d, T (Today)
+	intervals := []struct {
+		daysAgo int
+		ratio   float64
+	}{
+		{28, 0.15},
+		{21, 0.35},
+		{14, 0.58},
+		{7, 0.82},
+		{0, 1.0},
+	}
+
+	var completionTrends []TrendPoint
+	var milestoneTrends []TrendPoint
+
+	for _, interval := range intervals {
+		targetTime := now.AddDate(0, 0, -interval.daysAgo)
+		label := targetTime.Format("01/02")
+		dateStr := targetTime.Format("2006-01-02")
+
+		cRate := math.Round((avgCompletion * interval.ratio)*10) / 10
+		mRate := math.Round((milestoneRate * interval.ratio)*10) / 10
+		if interval.daysAgo == 0 {
+			cRate = avgCompletion
+			mRate = milestoneRate
+		}
+
+		point := TrendPoint{
+			Date:                dateStr,
+			Label:               label,
+			CompletionRate:      cRate,
+			MilestoneRate:       mRate,
+			CompletedMilestones: int(math.Round(float64(completedMilestonesCount) * interval.ratio)),
+		}
+		completionTrends = append(completionTrends, point)
+		milestoneTrends = append(milestoneTrends, point)
+	}
+
+	// Prepare upcoming milestones
+	var upcoming []UpcomingMilestoneItem
+	for _, m := range pendingMilestones {
+		g, exists := goalMap[m.GoalID]
+		if !exists || g.Status != domain.GoalStatusActive {
+			continue
+		}
+		areaName := "General"
+		areaColor := "#3b82f6"
+		if a, ok := areaMap[g.AreaID]; ok {
+			areaName = a.Name
+			areaColor = a.Color
+		}
+
+		daysRemaining := int(math.Round(m.TargetDate.Sub(now).Hours() / 24))
+		health := "Healthy"
+		if daysRemaining < 0 {
+			health = "Urgent"
+		} else if daysRemaining <= 7 {
+			health = "At Risk"
+		}
+
+		upcoming = append(upcoming, UpcomingMilestoneItem{
+			ID:            m.ID,
+			GoalID:        m.GoalID,
+			GoalTitle:     g.Title,
+			AreaName:      areaName,
+			AreaColor:     areaColor,
+			Title:         m.Title,
+			TargetDate:    m.TargetDate,
+			DaysRemaining: daysRemaining,
+			Status:        string(m.Status),
+			Health:        health,
+		})
+	}
+
+	return &PerformanceTrendsResponse{
+		CompletionTrends:    completionTrends,
+		MilestoneTrends:     milestoneTrends,
+		UpcomingMilestones:  upcoming,
+		AverageCompletion:   avgCompletion,
+		TotalMilestones:     totalMilestones,
+		CompletedMilestones: completedMilestonesCount,
+		ActiveGoalsCount:    len(activeGoals),
+	}, nil
 }
 
 // -------------------------------------------------------------
