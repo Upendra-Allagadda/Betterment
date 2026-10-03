@@ -1,0 +1,23 @@
+{
+  "name": "betterment-goal-os",
+  "version": "0.1.0",
+  "description": "Goal Operating System — Outcome-driven personal goal execution platform",
+  "private": true,
+  "scripts": {
+    "dev": "make dev",
+    "dev:backend": "make backend-dev",
+    "dev:frontend": "make frontend-dev",
+    "test": "make test",
+    "build": "make build"
+  },
+  "keywords": [
+    "goal-tracking",
+    "personal-os",
+    "execution",
+    "golang",
+    "clean-architecture",
+    "react",
+    "vite"
+  ],
+  "license": "MIT"
+}
