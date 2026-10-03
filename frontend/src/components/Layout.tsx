@@ -8,12 +8,13 @@ import {
   Map,
   RotateCcw,
   Scale,
+  LayoutGrid,
 } from 'lucide-react';
 import { api } from '../api/client';
 
 interface LayoutProps {
-  currentTab: 'daily' | 'goals' | 'review' | 'balance';
-  onSelectTab: (tab: 'daily' | 'goals' | 'review' | 'balance') => void;
+  currentTab: 'overview' | 'daily' | 'goals' | 'review' | 'balance';
+  onSelectTab: (tab: 'overview' | 'daily' | 'goals' | 'review' | 'balance') => void;
   pendingCount?: number;
   onDataRefresh: () => void;
   children: ReactNode;
@@ -50,13 +51,14 @@ export const Layout: FC<LayoutProps> = ({
   };
 
   interface NavItem {
-    id: 'daily' | 'goals' | 'review' | 'balance';
+    id: 'overview' | 'daily' | 'goals' | 'review' | 'balance';
     label: string;
     icon: typeof CheckCircle2;
     badge?: number;
   }
 
   const navItems: NavItem[] = [
+    { id: 'overview', label: 'Overview', icon: LayoutGrid },
     { id: 'daily', label: 'Daily Focus', icon: CheckCircle2, badge: pendingCount > 0 ? pendingCount : undefined },
     { id: 'goals', label: 'Goal Roadmap', icon: Map },
     { id: 'review', label: 'Weekly Review', icon: RotateCcw },

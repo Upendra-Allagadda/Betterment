@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Layout } from './components/Layout';
+import { OverviewView } from './components/OverviewView';
 import { DailyFocusView } from './components/DailyFocusView';
 import { GoalsView } from './components/GoalsView';
 import { GoalDetailModal } from './components/GoalDetailModal';
@@ -20,7 +21,7 @@ import type {
 } from './types';
 
 export function App() {
-  const [currentTab, setCurrentTab] = useState<'daily' | 'goals' | 'review' | 'balance'>('daily');
+  const [currentTab, setCurrentTab] = useState<'overview' | 'daily' | 'goals' | 'review' | 'balance'>('overview');
   const [areas, setAreas] = useState<Area[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [dailyActions, setDailyActions] = useState<ActionItem[]>([]);
@@ -236,6 +237,76 @@ export function App() {
     }
   };
 
+  // Adopt Pre-built Template (FDR §12 Principle 1: Start Simple)
+  const handleAdoptTemplate = async (data: {
+    areaId: string;
+    areaName: string;
+    areaColor: string;
+    areaIcon: string;
+    title: string;
+    why: string;
+    targetDate: string;
+    successDefinition: string;
+    milestones: string[];
+  }) => {
+    try {
+      let finalAreaId = data.areaId;
+      if (!finalAreaId) {
+        const createdArea = await api.createArea({
+          name: data.areaName,
+          description: `Life dimension for ${data.areaName}`,
+          color: data.areaColor,
+          icon: data.areaIcon,
+        });
+        finalAreaId = createdArea.id;
+      }
+
+      const createdGoal = await api.createGoal({
+        areaId: finalAreaId,
+        title: data.title,
+        why: data.why,
+        targetDate: data.targetDate,
+        successDefinition: data.successDefinition,
+        status: 'Active',
+      });
+
+      for (let i = 0; i < data.milestones.length; i++) {
+        const msTitle = data.milestones[i];
+        const msDate = new Date();
+        msDate.setDate(msDate.getDate() + (i + 1) * 20);
+        await api.createMilestone({
+          goalId: createdGoal.id,
+          title: msTitle,
+          targetDate: msDate.toISOString(),
+          order: i + 1,
+        });
+      }
+
+      await loadData();
+      await handleSelectGoal(createdGoal.id);
+      setCurrentTab('goals');
+    } catch (err) {
+      console.error('Failed to adopt template:', err);
+      alert('Could not adopt template: ' + (err as Error).message);
+    }
+  };
+
+  // Create Custom Life Area
+  const handleCreateArea = async (data: {
+    name: string;
+    description: string;
+    color: string;
+    icon: string;
+  }) => {
+    try {
+      await api.createArea(data);
+      await loadData();
+    } catch (err) {
+      console.error('Failed to create area:', err);
+      alert('Could not create life area: ' + (err as Error).message);
+    }
+  };
+
   const pendingActionsCount = dailyActions.filter((a) => a.status === 'Pending').length;
 
   return (
@@ -251,6 +322,18 @@ export function App() {
         </div>
       ) : (
         <>
+          {currentTab === 'overview' && (
+            <OverviewView
+              goals={goals}
+              areas={areas}
+              onSelectGoal={handleSelectGoal}
+              onOpenNewGoal={() => setShowNewGoalModal(true)}
+              onAdoptTemplate={handleAdoptTemplate}
+              onCreateArea={handleCreateArea}
+              onNavigateToTab={(tab) => setCurrentTab(tab)}
+            />
+          )}
+
           {currentTab === 'daily' && (
             <DailyFocusView
               actions={dailyActions}
