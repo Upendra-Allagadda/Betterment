@@ -13,8 +13,8 @@ import {
 import { api } from '../api/client';
 
 interface LayoutProps {
-  currentTab: 'overview' | 'daily' | 'goals' | 'review' | 'balance';
-  onSelectTab: (tab: 'overview' | 'daily' | 'goals' | 'review' | 'balance') => void;
+  currentTab: 'overview' | 'goals' | 'daily' | 'review' | 'templates' | 'balance';
+  onSelectTab: (tab: 'overview' | 'goals' | 'daily' | 'review' | 'templates' | 'balance') => void;
   pendingCount?: number;
   onDataRefresh: () => void;
   children: ReactNode;
@@ -51,7 +51,7 @@ export const Layout: FC<LayoutProps> = ({
   };
 
   interface NavItem {
-    id: 'overview' | 'daily' | 'goals' | 'review' | 'balance';
+    id: 'overview' | 'goals' | 'daily' | 'review' | 'templates' | 'balance';
     label: string;
     icon: typeof CheckCircle2;
     badge?: number;
@@ -59,9 +59,10 @@ export const Layout: FC<LayoutProps> = ({
 
   const navItems: NavItem[] = [
     { id: 'overview', label: 'Overview', icon: LayoutGrid },
+    { id: 'goals', label: 'Goal Workspace', icon: Map },
     { id: 'daily', label: 'Daily Focus', icon: CheckCircle2, badge: pendingCount > 0 ? pendingCount : undefined },
-    { id: 'goals', label: 'Goal Roadmap', icon: Map },
     { id: 'review', label: 'Weekly Review', icon: RotateCcw },
+    { id: 'templates', label: 'Templates', icon: Sparkles },
     { id: 'balance', label: 'Balance', icon: Scale },
   ];
 

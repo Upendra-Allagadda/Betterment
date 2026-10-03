@@ -4,6 +4,7 @@ import type {
   Milestone,
   ActionItem,
   GoalDetail,
+  GoalComment,
   WeeklyReview,
   CapacityAssessment,
   GoalStatus,
@@ -96,9 +97,33 @@ export const api = {
     return handleResponse<Goal>(res);
   },
 
+  async updateGoal(id: string, data: Partial<Goal>): Promise<Goal> {
+    const res = await fetch(`${BASE_URL}/goals/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return handleResponse<Goal>(res);
+  },
+
   async deleteGoal(id: string): Promise<void> {
     const res = await fetch(`${BASE_URL}/goals/${id}`, { method: 'DELETE' });
     return handleResponse<void>(res);
+  },
+
+  // Goal Comments & Activity Updates
+  async getComments(goalId: string): Promise<GoalComment[]> {
+    const res = await fetch(`${BASE_URL}/goals/${goalId}/comments`);
+    return handleResponse<GoalComment[]>(res);
+  },
+
+  async addComment(goalId: string, data: { content: string; author?: string }): Promise<GoalComment> {
+    const res = await fetch(`${BASE_URL}/goals/${goalId}/comments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return handleResponse<GoalComment>(res);
   },
 
   // Milestones

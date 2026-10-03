@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS goals (
     area_id TEXT NOT NULL,
     title TEXT NOT NULL,
     why TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
     target_date TIMESTAMP NOT NULL,
     success_definition TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'Draft',
@@ -24,6 +25,15 @@ CREATE TABLE IF NOT EXISTS goals (
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
     FOREIGN KEY (area_id) REFERENCES areas(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS goal_comments (
+    id TEXT PRIMARY KEY,
+    goal_id TEXT NOT NULL,
+    author TEXT NOT NULL DEFAULT 'User',
+    content TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    FOREIGN KEY (goal_id) REFERENCES goals(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS milestones (
@@ -74,6 +84,7 @@ CREATE TABLE IF NOT EXISTS weekly_reviews (
 );
 
 CREATE INDEX IF NOT EXISTS idx_goals_area_id ON goals(area_id);
+CREATE INDEX IF NOT EXISTS idx_comments_goal_id ON goal_comments(goal_id);
 CREATE INDEX IF NOT EXISTS idx_milestones_goal_id ON milestones(goal_id);
 CREATE INDEX IF NOT EXISTS idx_actions_goal_id ON actions(goal_id);
 CREATE INDEX IF NOT EXISTS idx_actions_milestone_id ON actions(milestone_id);

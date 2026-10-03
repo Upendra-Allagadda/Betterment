@@ -88,7 +88,7 @@ func (r *Repository) DeleteArea(id string) error {
 
 func (r *Repository) ListGoals(statusFilter, areaIDFilter string) ([]*domain.Goal, error) {
 	query := `
-		SELECT id, area_id, title, why, target_date, success_definition, status, progress, start_date, created_at, updated_at
+		SELECT id, area_id, title, why, description, target_date, success_definition, status, progress, start_date, created_at, updated_at
 		FROM goals WHERE 1=1
 	`
 	var args []any
@@ -111,7 +111,7 @@ func (r *Repository) ListGoals(statusFilter, areaIDFilter string) ([]*domain.Goa
 	var goals []*domain.Goal
 	for rows.Next() {
 		var g domain.Goal
-		if err := rows.Scan(&g.ID, &g.AreaID, &g.Title, &g.Why, &g.TargetDate, &g.SuccessDefinition, &g.Status, &g.Progress, &g.StartDate, &g.CreatedAt, &g.UpdatedAt); err != nil {
+		if err := rows.Scan(&g.ID, &g.AreaID, &g.Title, &g.Why, &g.Description, &g.TargetDate, &g.SuccessDefinition, &g.Status, &g.Progress, &g.StartDate, &g.CreatedAt, &g.UpdatedAt); err != nil {
 			return nil, err
 		}
 		goals = append(goals, &g)
@@ -122,9 +122,9 @@ func (r *Repository) ListGoals(statusFilter, areaIDFilter string) ([]*domain.Goa
 func (r *Repository) GetGoalByID(id string) (*domain.Goal, error) {
 	var g domain.Goal
 	err := r.db.SQL.QueryRow(`
-		SELECT id, area_id, title, why, target_date, success_definition, status, progress, start_date, created_at, updated_at
+		SELECT id, area_id, title, why, description, target_date, success_definition, status, progress, start_date, created_at, updated_at
 		FROM goals WHERE id = ?
-	`, id).Scan(&g.ID, &g.AreaID, &g.Title, &g.Why, &g.TargetDate, &g.SuccessDefinition, &g.Status, &g.Progress, &g.StartDate, &g.CreatedAt, &g.UpdatedAt)
+	`, id).Scan(&g.ID, &g.AreaID, &g.Title, &g.Why, &g.Description, &g.TargetDate, &g.SuccessDefinition, &g.Status, &g.Progress, &g.StartDate, &g.CreatedAt, &g.UpdatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, domain.ErrNotFound
 	}
@@ -136,18 +136,19 @@ func (r *Repository) GetGoalByID(id string) (*domain.Goal, error) {
 
 func (r *Repository) SaveGoal(g *domain.Goal) error {
 	_, err := r.db.SQL.Exec(`
-		INSERT INTO goals (id, area_id, title, why, target_date, success_definition, status, progress, start_date, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		INSERT INTO goals (id, area_id, title, why, description, target_date, success_definition, status, progress, start_date, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(id) DO UPDATE SET
 			area_id = excluded.area_id,
 			title = excluded.title,
 			why = excluded.why,
+			description = excluded.description,
 			target_date = excluded.target_date,
 			success_definition = excluded.success_definition,
 			status = excluded.status,
 			progress = excluded.progress,
 			updated_at = excluded.updated_at
-	`, g.ID, g.AreaID, g.Title, g.Why, g.TargetDate, g.SuccessDefinition, g.Status, g.Progress, g.StartDate, g.CreatedAt, g.UpdatedAt)
+	`, g.ID, g.AreaID, g.Title, g.Why, g.Description, g.TargetDate, g.SuccessDefinition, g.Status, g.Progress, g.StartDate, g.CreatedAt, g.UpdatedAt)
 	return err
 }
 
@@ -527,4 +528,49 @@ func (r *Repository) GetCapacityAssessment() (domain.CapacityAssessment, error) 
 	}
 
 	return domain.EvaluateCapacity(breakdowns), nil
+}
+
+// -------------------------------------------------------------
+// Goal Comments
+// -------------------------------------------------------------
+
+func (r *Repository) ListCommentsByGoalID(goalID string) ([]*domain.Comment, error) {
+	rows, err := r.db.SQL.Query(`
+		SELECT id, goal_id, author, content, created_at
+		FROM goal_comments
+		WHERE goal_id = ?
+		ORDER BY created_at ASC
+	`, goalID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var comments []*domain.Comment
+	for rows.Next() {
+		var c domain.Comment
+		if err := rows.Scan(&c.ID, &c.GoalID, &c.Author, &c.Content, &c.CreatedAt); err != nil {
+			return nil, err
+		}
+		comments = append(comments, &c)
+	}
+	return comments, nil
+}
+
+func (r *Repository) SaveComment(c *domain.Comment) error {
+	_, err := r.db.SQL.Exec(`
+		INSERT INTO goal_comments (id, goal_id, author, content, created_at)
+		VALUES (?, ?, ?, ?, ?)
+	`, c.ID, c.GoalID, c.Author, c.Content, c.CreatedAt)
+	return err
+}
+
+func (r *Repository) ClearAll() error {
+	_, _ = r.db.SQL.Exec(`DELETE FROM goal_comments`)
+	_, _ = r.db.SQL.Exec(`DELETE FROM actions`)
+	_, _ = r.db.SQL.Exec(`DELETE FROM milestones`)
+	_, _ = r.db.SQL.Exec(`DELETE FROM goals`)
+	_, _ = r.db.SQL.Exec(`DELETE FROM weekly_reviews`)
+	_, _ = r.db.SQL.Exec(`DELETE FROM areas`)
+	return nil
 }

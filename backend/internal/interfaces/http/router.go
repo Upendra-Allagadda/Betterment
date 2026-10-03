@@ -39,9 +39,12 @@ func NewRouter(h *Handler) http.Handler {
 		r.Get("/goals", h.ListGoals)
 		r.Post("/goals", h.CreateGoal)
 		r.Get("/goals/{id}", h.GetGoal)
+		r.Patch("/goals/{id}", h.UpdateGoal)
 		r.Patch("/goals/{id}/status", h.TransitionGoalStatus)
 		r.Patch("/goals/{id}/progress", h.UpdateGoalProgress)
 		r.Delete("/goals/{id}", h.DeleteGoal)
+		r.Get("/goals/{id}/comments", h.ListGoalComments)
+		r.Post("/goals/{id}/comments", h.AddGoalComment)
 
 		// Milestones
 		r.Post("/milestones", h.CreateMilestone)

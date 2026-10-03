@@ -50,6 +50,7 @@ type CreateGoalInput struct {
 	AreaID            string            `json:"areaId"`
 	Title             string            `json:"title"`
 	Why               string            `json:"why"`
+	Description       string            `json:"description"`
 	TargetDate        time.Time         `json:"targetDate"`
 	SuccessDefinition string            `json:"successDefinition"`
 	Status            domain.GoalStatus `json:"status"`
@@ -74,6 +75,51 @@ func (s *Service) CreateGoal(input CreateGoalInput) (*domain.Goal, error) {
 		return nil, err
 	}
 
+	if input.Description != "" {
+		goal.SetDescription(input.Description)
+	}
+
+	if err := s.repo.SaveGoal(goal); err != nil {
+		return nil, err
+	}
+	return goal, nil
+}
+
+type UpdateGoalInput struct {
+	Title             *string            `json:"title,omitempty"`
+	Why               *string            `json:"why,omitempty"`
+	Description       *string            `json:"description,omitempty"`
+	TargetDate        *time.Time         `json:"targetDate,omitempty"`
+	SuccessDefinition *string            `json:"successDefinition,omitempty"`
+	Status            *domain.GoalStatus `json:"status,omitempty"`
+}
+
+func (s *Service) UpdateGoal(id string, input UpdateGoalInput) (*domain.Goal, error) {
+	goal, err := s.repo.GetGoalByID(id)
+	if err != nil {
+		return nil, err
+	}
+	if input.Title != nil && *input.Title != "" {
+		goal.Title = *input.Title
+	}
+	if input.Why != nil && *input.Why != "" {
+		goal.Why = *input.Why
+	}
+	if input.Description != nil {
+		goal.Description = *input.Description
+	}
+	if input.TargetDate != nil && !input.TargetDate.IsZero() {
+		goal.TargetDate = *input.TargetDate
+	}
+	if input.SuccessDefinition != nil && *input.SuccessDefinition != "" {
+		goal.SuccessDefinition = *input.SuccessDefinition
+	}
+	if input.Status != nil {
+		if err := goal.TransitionStatus(*input.Status); err != nil {
+			return nil, err
+		}
+	}
+	goal.UpdatedAt = time.Now().UTC()
 	if err := s.repo.SaveGoal(goal); err != nil {
 		return nil, err
 	}
@@ -204,13 +250,32 @@ type CreateActionInput struct {
 }
 
 func (s *Service) CreateAction(input CreateActionInput) (*domain.Action, error) {
-	// Verify milestone exists and matches goal
-	ms, err := s.repo.GetMilestoneByID(input.MilestoneID)
-	if err != nil {
-		return nil, domain.ErrNotFound
-	}
-	if ms.GoalID != input.GoalID {
-		return nil, domain.ErrInvalidInput
+	if input.MilestoneID == "" {
+		if input.GoalID == "" {
+			return nil, domain.ErrInvalidInput
+		}
+		milestones, err := s.repo.ListMilestonesByGoalID(input.GoalID)
+		if err != nil || len(milestones) == 0 {
+			defaultMs, err := domain.NewMilestone(uuid.New().String(), input.GoalID, "Core Execution", time.Now().Add(30*24*time.Hour), 1)
+			if err != nil {
+				return nil, err
+			}
+			if err := s.repo.SaveMilestone(defaultMs); err != nil {
+				return nil, err
+			}
+			input.MilestoneID = defaultMs.ID
+		} else {
+			input.MilestoneID = milestones[0].ID
+		}
+	} else {
+		// Verify milestone exists and matches goal
+		ms, err := s.repo.GetMilestoneByID(input.MilestoneID)
+		if err != nil {
+			return nil, domain.ErrNotFound
+		}
+		if ms.GoalID != input.GoalID {
+			return nil, domain.ErrInvalidInput
+		}
 	}
 
 	act, err := domain.NewAction(
@@ -364,4 +429,34 @@ func (s *Service) CompleteWeeklyReview(id string, input CompleteReviewInput) (*d
 
 func (s *Service) GetCapacityAssessment() (domain.CapacityAssessment, error) {
 	return s.repo.GetCapacityAssessment()
+}
+
+// -------------------------------------------------------------
+// Goal Comments (Reflection & Updates Feed)
+// -------------------------------------------------------------
+
+type CreateCommentInput struct {
+	Author  string `json:"author"`
+	Content string `json:"content"`
+}
+
+func (s *Service) AddGoalComment(goalID string, input CreateCommentInput) (*domain.Comment, error) {
+	if _, err := s.repo.GetGoalByID(goalID); err != nil {
+		return nil, domain.ErrNotFound
+	}
+	comment, err := domain.NewComment(uuid.New().String(), goalID, input.Author, input.Content)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.repo.SaveComment(comment); err != nil {
+		return nil, err
+	}
+	return comment, nil
+}
+
+func (s *Service) ListGoalComments(goalID string) ([]*domain.Comment, error) {
+	if _, err := s.repo.GetGoalByID(goalID); err != nil {
+		return nil, domain.ErrNotFound
+	}
+	return s.repo.ListCommentsByGoalID(goalID)
 }

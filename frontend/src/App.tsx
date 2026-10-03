@@ -3,6 +3,7 @@ import { Layout } from './components/Layout';
 import { OverviewView } from './components/OverviewView';
 import { DailyFocusView } from './components/DailyFocusView';
 import { GoalsView } from './components/GoalsView';
+import { TemplatesView } from './components/TemplatesView';
 import { GoalDetailModal } from './components/GoalDetailModal';
 import { NewGoalModal } from './components/NewGoalModal';
 import { NewActionModal } from './components/NewActionModal';
@@ -21,7 +22,7 @@ import type {
 } from './types';
 
 export function App() {
-  const [currentTab, setCurrentTab] = useState<'overview' | 'daily' | 'goals' | 'review' | 'balance'>('overview');
+  const [currentTab, setCurrentTab] = useState<'overview' | 'goals' | 'daily' | 'review' | 'templates' | 'balance'>('overview');
   const [areas, setAreas] = useState<Area[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [dailyActions, setDailyActions] = useState<ActionItem[]>([]);
@@ -29,7 +30,8 @@ export function App() {
   const [capacity, setCapacity] = useState<CapacityAssessment | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Modals
+  // Modals & Navigation state
+  const [focusedGoalId, setFocusedGoalId] = useState<string>('');
   const [selectedGoalDetail, setSelectedGoalDetail] = useState<GoalDetail | null>(null);
   const [showNewGoalModal, setShowNewGoalModal] = useState(false);
   const [showNewActionModal, setShowNewActionModal] = useState(false);
@@ -62,15 +64,10 @@ export function App() {
     loadData();
   }, [loadData]);
 
-  // Open Goal Detail
-  const handleSelectGoal = async (goalId: string) => {
-    try {
-      const detail = await api.getGoalDetail(goalId);
-      setSelectedGoalDetail(detail);
-      setCurrentTab('goals');
-    } catch (err) {
-      console.error('Failed to get goal detail:', err);
-    }
+  // Open Goal in Workspace
+  const handleSelectGoal = (goalId: string) => {
+    setFocusedGoalId(goalId);
+    setCurrentTab('goals');
   };
 
   // Toggle Action Status
@@ -326,11 +323,21 @@ export function App() {
             <OverviewView
               goals={goals}
               areas={areas}
+              actions={dailyActions}
               onSelectGoal={handleSelectGoal}
               onOpenNewGoal={() => setShowNewGoalModal(true)}
-              onAdoptTemplate={handleAdoptTemplate}
-              onCreateArea={handleCreateArea}
               onNavigateToTab={(tab) => setCurrentTab(tab)}
+            />
+          )}
+
+          {currentTab === 'goals' && (
+            <GoalsView
+              goals={goals}
+              areas={areas}
+              selectedGoalId={focusedGoalId}
+              onSelectGoal={(id) => setFocusedGoalId(id)}
+              onOpenNewGoal={() => setShowNewGoalModal(true)}
+              onTransitionStatus={handleTransitionGoalStatus}
             />
           )}
 
@@ -345,21 +352,20 @@ export function App() {
             />
           )}
 
-          {currentTab === 'goals' && (
-            <GoalsView
-              goals={goals}
-              areas={areas}
-              onSelectGoal={handleSelectGoal}
-              onOpenNewGoal={() => setShowNewGoalModal(true)}
-              onTransitionStatus={handleTransitionGoalStatus}
-            />
-          )}
-
           {currentTab === 'review' && (
             <WeeklyReviewView
               reviews={reviews}
               onStartReview={handleStartWeeklyReview}
               onCompleteReview={handleCompleteWeeklyReview}
+            />
+          )}
+
+          {currentTab === 'templates' && (
+            <TemplatesView
+              areas={areas}
+              onAdoptTemplate={handleAdoptTemplate}
+              onCreateArea={handleCreateArea}
+              onOpenNewGoal={() => setShowNewGoalModal(true)}
             />
           )}
 

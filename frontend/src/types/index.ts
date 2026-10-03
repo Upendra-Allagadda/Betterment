@@ -19,6 +19,7 @@ export interface Goal {
   areaId: string;
   title: string;
   why: string;
+  description?: string;
   targetDate: string;
   successDefinition: string;
   status: GoalStatus;
@@ -26,6 +27,14 @@ export interface Goal {
   startDate: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface GoalComment {
+  id: string;
+  goalId: string;
+  author: string;
+  content: string;
+  createdAt: string;
 }
 
 export interface Milestone {
@@ -65,6 +74,7 @@ export interface GoalDetail {
   goal: Goal;
   milestones: Milestone[];
   actions: ActionItem[];
+  comments?: GoalComment[];
 }
 
 export interface WeeklyReview {

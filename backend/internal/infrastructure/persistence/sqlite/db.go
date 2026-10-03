@@ -46,6 +46,9 @@ func NewDB(dbPath string) (*DB, error) {
 		return nil, fmt.Errorf("failed to execute schema: %w", err)
 	}
 
+	// Safe column migrations for existing databases
+	_, _ = conn.Exec("ALTER TABLE goals ADD COLUMN description TEXT NOT NULL DEFAULT '';")
+
 	return &DB{SQL: conn}, nil
 }
 

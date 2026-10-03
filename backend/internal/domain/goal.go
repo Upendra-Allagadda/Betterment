@@ -22,6 +22,7 @@ type Goal struct {
 	AreaID            string     `json:"areaId"`
 	Title             string     `json:"title"`             // What: Meaningful outcome
 	Why               string     `json:"why"`               // Why: Core motivation & importance
+	Description       string     `json:"description"`       // Overview / detailed background
 	TargetDate        time.Time  `json:"targetDate"`        // By when
 	SuccessDefinition string     `json:"successDefinition"` // How will I know I succeeded (measurable or qualitative)
 	Status            GoalStatus `json:"status"`
@@ -29,6 +30,11 @@ type Goal struct {
 	StartDate         time.Time  `json:"startDate"`
 	CreatedAt         time.Time  `json:"createdAt"`
 	UpdatedAt         time.Time  `json:"updatedAt"`
+}
+
+func (g *Goal) SetDescription(desc string) {
+	g.Description = strings.TrimSpace(desc)
+	g.UpdatedAt = time.Now().UTC()
 }
 
 // NewGoal creates and validates a new goal. Enforces FDR §6 (What, Why, By when, Success Definition).

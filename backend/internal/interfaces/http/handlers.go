@@ -117,6 +117,7 @@ type GoalDetailResponse struct {
 	Goal       *domain.Goal        `json:"goal"`
 	Milestones []*domain.Milestone `json:"milestones"`
 	Actions    []*domain.Action    `json:"actions"`
+	Comments   []*domain.Comment   `json:"comments"`
 }
 
 func (h *Handler) GetGoal(w http.ResponseWriter, r *http.Request) {
@@ -130,10 +131,15 @@ func (h *Handler) GetGoal(w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusInternalServerError, err.Error(), "INTERNAL_ERROR")
 		return
 	}
+	comments, _ := h.svc.ListGoalComments(id)
+	if comments == nil {
+		comments = []*domain.Comment{}
+	}
 	respondJSON(w, http.StatusOK, GoalDetailResponse{
 		Goal:       goal,
 		Milestones: milestones,
 		Actions:    actions,
+		Comments:   comments,
 	})
 }
 
@@ -198,6 +204,61 @@ func (h *Handler) DeleteGoal(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *Handler) UpdateGoal(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	var input application.UpdateGoalInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid JSON body", "BAD_REQUEST")
+		return
+	}
+	goal, err := h.svc.UpdateGoal(id, input)
+	if err != nil {
+		if errors.Is(err, domain.ErrNotFound) {
+			respondError(w, http.StatusNotFound, "Goal not found", "NOT_FOUND")
+			return
+		}
+		respondError(w, http.StatusBadRequest, err.Error(), "BAD_REQUEST")
+		return
+	}
+	respondJSON(w, http.StatusOK, goal)
+}
+
+func (h *Handler) ListGoalComments(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	comments, err := h.svc.ListGoalComments(id)
+	if err != nil {
+		if errors.Is(err, domain.ErrNotFound) {
+			respondError(w, http.StatusNotFound, "Goal not found", "NOT_FOUND")
+			return
+		}
+		respondError(w, http.StatusInternalServerError, err.Error(), "INTERNAL_ERROR")
+		return
+	}
+	if comments == nil {
+		comments = []*domain.Comment{}
+	}
+	respondJSON(w, http.StatusOK, comments)
+}
+
+func (h *Handler) AddGoalComment(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	var input application.CreateCommentInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid JSON body", "BAD_REQUEST")
+		return
+	}
+	comment, err := h.svc.AddGoalComment(id, input)
+	if err != nil {
+		if errors.Is(err, domain.ErrNotFound) {
+			respondError(w, http.StatusNotFound, "Goal not found", "NOT_FOUND")
+			return
+		}
+		respondError(w, http.StatusBadRequest, err.Error(), "BAD_REQUEST")
+		return
+	}
+	respondJSON(w, http.StatusCreated, comment)
 }
 
 // -------------------------------------------------------------
@@ -384,7 +445,7 @@ func (h *Handler) GetCapacity(w http.ResponseWriter, r *http.Request) {
 // -------------------------------------------------------------
 
 func (h *Handler) SeedData(w http.ResponseWriter, r *http.Request) {
-	if err := h.svc.SeedRealisticData(); err != nil {
+	if err := h.svc.ResetAndSeedRealisticData(); err != nil {
 		respondError(w, http.StatusInternalServerError, err.Error(), "INTERNAL_ERROR")
 		return
 	}

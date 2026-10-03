@@ -10,4 +10,5 @@ var (
 	ErrMilestoneRequired   = errors.New("action must belong to a milestone and goal")
 	ErrAreaRequired        = errors.New("goal must belong to an area")
 	ErrReviewAlreadyClosed = errors.New("review has already been completed")
+	ErrCommentEmpty        = errors.New("comment content cannot be empty")
 )

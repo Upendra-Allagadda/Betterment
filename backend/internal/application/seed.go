@@ -7,12 +7,22 @@ import (
 	"github.com/google/uuid"
 )
 
+// ResetAndSeedRealisticData forces a clean reset and seeds the database.
+func (s *Service) ResetAndSeedRealisticData() error {
+	_ = s.repo.ClearAll()
+	return s.seedDataInternal()
+}
+
 // SeedRealisticData seeds the database with initial areas, goals, milestones, actions, and a past review.
 func (s *Service) SeedRealisticData() error {
 	existingAreas, err := s.repo.ListAreas()
 	if err == nil && len(existingAreas) > 0 {
 		return nil // already seeded
 	}
+	return s.seedDataInternal()
+}
+
+func (s *Service) seedDataInternal() error {
 
 	now := time.Now().UTC()
 	today := time.Date(now.Year(), now.Month(), now.Day(), 12, 0, 0, 0, time.UTC)
@@ -40,6 +50,7 @@ func (s *Service) SeedRealisticData() error {
 		"Design, build, and deploy an end-to-end event-driven service in Go with gRPC, Kafka, SQLite, and full telemetry sustaining 2,000 req/sec.",
 		domain.GoalStatusActive,
 	)
+	goGoal.SetDescription("Focus on building production-grade distributed backend systems. Deep dive into concurrency primitives, memory management, zero-allocation algorithms, and robust telemetry observability.")
 	_ = s.repo.SaveGoal(goGoal)
 
 	ms1, _ := domain.NewMilestone(uuid.New().String(), goGoal.ID, "Master Go Concurrency Patterns & Channels", today.AddDate(0, -1, 0), 1)
@@ -66,6 +77,11 @@ func (s *Service) SeedRealisticData() error {
 	actGo3, _ := domain.NewAction(uuid.New().String(), goGoal.ID, ms4.ID, "Setup OpenTelemetry tracer with Jaeger integration", &inThreeDays, domain.ActionPriorityMedium, "1h", "Trace HTTP & gRPC request spans")
 	_ = s.repo.SaveAction(actGo3)
 
+	_, _ = s.AddGoalComment(goGoal.ID, CreateCommentInput{
+		Author:  "Self",
+		Content: "Benchmarked worker pool with 1,000 concurrent routines. Zero goroutine leaks detected on profiling heap snapshot.",
+	})
+
 	_ = s.syncGoalProgress(goGoal.ID)
 
 	// 3. Goal 2: 10K Road Race
@@ -78,6 +94,7 @@ func (s *Service) SeedRealisticData() error {
 		"Cross the official 10K timing mat with sub-5:00/km average pace without injuries.",
 		domain.GoalStatusActive,
 	)
+	runGoal.SetDescription("Structured 12-week aerobic base building and lactate threshold development to achieve sub-50 minute 10K road race time.")
 	_ = s.repo.SaveGoal(runGoal)
 
 	msRun1, _ := domain.NewMilestone(uuid.New().String(), runGoal.ID, "Build 25km weekly aerobic base", today.AddDate(0, 0, -10), 1)
@@ -93,6 +110,11 @@ func (s *Service) SeedRealisticData() error {
 	actRun2, _ := domain.NewAction(uuid.New().String(), runGoal.ID, msRun2.ID, "Lower body mobility and hip flexor foam rolling", &tomorrow, domain.ActionPriorityLow, "20m", "Focus on calves and hamstrings")
 	_ = s.repo.SaveAction(actRun2)
 
+	_, _ = s.AddGoalComment(runGoal.ID, CreateCommentInput{
+		Author:  "Self",
+		Content: "Completed 5x 400m interval splits at 4:35/km average pace. Felt strong, hydration and rest made a clear difference.",
+	})
+
 	_ = s.syncGoalProgress(runGoal.ID)
 
 	// 4. Goal 3: Books Synthesis
@@ -105,6 +127,7 @@ func (s *Service) SeedRealisticData() error {
 		"Publish 6 executive one-page synthesis summaries with actionable personal operating principles.",
 		domain.GoalStatusActive,
 	)
+	bookGoal.SetDescription("Reading and distilling foundational systems thinking and engineering management classics into actionable operating heuristics.")
 	_ = s.repo.SaveGoal(bookGoal)
 
 	msBook1, _ := domain.NewMilestone(uuid.New().String(), bookGoal.ID, "Read & synthesize 'Thinking in Systems' by Donella Meadows", today.AddDate(0, 0, -14), 1)

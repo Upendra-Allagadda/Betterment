@@ -157,3 +157,69 @@ func TestService_SeedData(t *testing.T) {
 		t.Errorf("expected daily actions to be populated")
 	}
 }
+
+func TestService_GoalUpdatesAndComments(t *testing.T) {
+	svc := setupTestService(t)
+
+	area, _ := svc.CreateArea(application.CreateAreaInput{Name: "Growth", Color: "#8b5cf6", Icon: "book-open"})
+	goal, err := svc.CreateGoal(application.CreateGoalInput{
+		AreaID:            area.ID,
+		Title:             "Master TypeScript Generics",
+		Why:               "Write bulletproof type systems",
+		Description:       "Study conditional types, template literals, and infer keyword",
+		TargetDate:        time.Now().Add(30 * 24 * time.Hour),
+		SuccessDefinition: "Build type-safe ORM query builder",
+		Status:            domain.GoalStatusActive,
+	})
+	if err != nil {
+		t.Fatalf("failed to create goal: %v", err)
+	}
+	if goal.Description != "Study conditional types, template literals, and infer keyword" {
+		t.Errorf("unexpected description: %s", goal.Description)
+	}
+
+	// Update goal description
+	newDesc := "Updated detailed roadmap"
+	updated, err := svc.UpdateGoal(goal.ID, application.UpdateGoalInput{
+		Description: &newDesc,
+	})
+	if err != nil {
+		t.Fatalf("failed to update goal: %v", err)
+	}
+	if updated.Description != newDesc {
+		t.Errorf("expected updated description %s, got: %s", newDesc, updated.Description)
+	}
+
+	// Create action directly under goal without specifying milestone
+	act, err := svc.CreateAction(application.CreateActionInput{
+		GoalID:   goal.ID,
+		Title:    "Solve 10 Type Challenges (Medium)",
+		Priority: domain.ActionPriorityHigh,
+	})
+	if err != nil {
+		t.Fatalf("failed to create action directly under goal: %v", err)
+	}
+	if act.MilestoneID == "" {
+		t.Errorf("expected action to auto-resolve a milestone")
+	}
+
+	// Add comments
+	comment, err := svc.AddGoalComment(goal.ID, application.CreateCommentInput{
+		Author:  "Dev",
+		Content: "Completed distributive conditional types challenge!",
+	})
+	if err != nil {
+		t.Fatalf("failed to add comment: %v", err)
+	}
+	if comment.Content != "Completed distributive conditional types challenge!" {
+		t.Errorf("unexpected comment content: %s", comment.Content)
+	}
+
+	comments, err := svc.ListGoalComments(goal.ID)
+	if err != nil {
+		t.Fatalf("failed to list comments: %v", err)
+	}
+	if len(comments) != 1 {
+		t.Errorf("expected 1 comment, got: %d", len(comments))
+	}
+}
