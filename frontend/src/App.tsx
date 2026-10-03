@@ -66,6 +66,7 @@ export function App() {
     try {
       const detail = await api.getGoalDetail(goalId);
       setSelectedGoalDetail(detail);
+      setCurrentTab('goals');
     } catch (err) {
       console.error('Failed to get goal detail:', err);
     }
@@ -254,6 +255,7 @@ export function App() {
             <DailyFocusView
               actions={dailyActions}
               goals={goals}
+              areas={areas}
               onToggleAction={handleToggleAction}
               onOpenNewAction={() => setShowNewActionModal(true)}
               onSelectGoal={handleSelectGoal}

@@ -1,14 +1,13 @@
 import { useState, useEffect, type ReactNode, type FC } from 'react';
 import {
-  CheckCircle2,
   Target,
-  RotateCcw,
-  Scale,
   Sun,
   Moon,
   Sparkles,
-  Layers,
-  ArrowRight,
+  CheckCircle2,
+  Map,
+  RotateCcw,
+  Scale,
 } from 'lucide-react';
 import { api } from '../api/client';
 
@@ -50,9 +49,23 @@ export const Layout: FC<LayoutProps> = ({
     }
   };
 
+  interface NavItem {
+    id: 'daily' | 'goals' | 'review' | 'balance';
+    label: string;
+    icon: typeof CheckCircle2;
+    badge?: number;
+  }
+
+  const navItems: NavItem[] = [
+    { id: 'daily', label: 'Daily Focus', icon: CheckCircle2, badge: pendingCount > 0 ? pendingCount : undefined },
+    { id: 'goals', label: 'Goal Roadmap', icon: Map },
+    { id: 'review', label: 'Weekly Review', icon: RotateCcw },
+    { id: 'balance', label: 'Balance', icon: Scale },
+  ];
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', position: 'relative' }}>
-      {/* Top Navbar */}
+      {/* Top Navbar matching Mockup 1 */}
       <header
         className="glass-panel"
         style={{
@@ -62,135 +75,112 @@ export const Layout: FC<LayoutProps> = ({
           borderRadius: 0,
           borderInline: 'none',
           borderTop: 'none',
-          padding: '0.85rem 1.5rem',
+          padding: '0.85rem 2rem',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          background: 'rgba(12, 16, 23, 0.92)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }} onClick={() => onSelectTab('daily')}>
-            <div
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
-                background: 'var(--primary-gradient)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 4px 12px var(--primary-glow)',
-              }}
-            >
-              <Target size={20} color="#ffffff" />
-            </div>
-            <div>
-              <span className="brand-title" style={{ fontSize: '1.25rem', fontWeight: 800 }}>
-                Goal<span style={{ color: 'var(--primary)' }}>OS</span>
-              </span>
-              <span
-                style={{
-                  display: 'block',
-                  fontSize: '0.68rem',
-                  color: 'var(--text-muted)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.08em',
-                  fontWeight: 600,
-                  marginTop: -2,
-                }}
-              >
-                Personal Goal Execution
-              </span>
-            </div>
-          </div>
-
-          {/* Desktop Product Loop Indicator (FDR §1) */}
+        {/* Brand */}
+        <div
+          onClick={() => onSelectTab('daily')}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', cursor: 'pointer' }}
+        >
           <div
-            className="loop-badge"
             style={{
-              display: 'none',
+              width: 32,
+              height: 32,
+              borderRadius: 9,
+              background: 'var(--primary-gradient)',
+              display: 'flex',
               alignItems: 'center',
-              gap: '0.4rem',
-              padding: '0.3rem 0.8rem',
-              borderRadius: 'var(--radius-full)',
-              background: 'rgba(255, 255, 255, 0.04)',
-              border: '1px solid var(--border-subtle)',
-              fontSize: '0.75rem',
-              color: 'var(--text-muted)',
+              justifyContent: 'center',
+              boxShadow: '0 4px 14px var(--primary-glow)',
             }}
           >
-            <span>Define</span> <ArrowRight size={12} />
-            <span>Plan</span> <ArrowRight size={12} />
-            <span style={{ color: 'var(--primary)', fontWeight: 600 }}>Execute</span> <ArrowRight size={12} />
-            <span>Review</span> <ArrowRight size={12} />
-            <span>Adjust</span>
+            <Target size={18} color="#ffffff" />
           </div>
+          <span style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.03em' }}>
+            Goal<span style={{ color: 'var(--primary)' }}>OS</span>
+          </span>
         </div>
 
-        {/* Desktop Navigation */}
-        <nav className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          <button
-            onClick={() => onSelectTab('daily')}
-            className={`btn ${currentTab === 'daily' ? 'btn-primary' : 'btn-ghost'}`}
-            style={{ padding: '0.5rem 1rem' }}
-          >
-            <CheckCircle2 size={17} />
-            <span>Daily Focus</span>
-            {pendingCount > 0 && (
-              <span
+        {/* Centered Desktop Navigation Tabs */}
+        <nav
+          className="desktop-nav"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1.5rem',
+            background: 'rgba(255, 255, 255, 0.03)',
+            padding: '0.35rem 1rem',
+            borderRadius: 'var(--radius-full)',
+            border: '1px solid var(--border-subtle)',
+          }}
+        >
+          {navItems.map((item) => {
+            const isActive = currentTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => onSelectTab(item.id)}
                 style={{
-                  background: currentTab === 'daily' ? 'rgba(255,255,255,0.25)' : 'rgba(99, 102, 241, 0.2)',
-                  color: currentTab === 'daily' ? '#ffffff' : 'var(--primary)',
-                  fontSize: '0.7rem',
-                  fontWeight: 700,
-                  padding: '0.1rem 0.45rem',
-                  borderRadius: 'var(--radius-full)',
-                  marginLeft: '0.2rem',
+                  position: 'relative',
+                  padding: '0.4rem 0.65rem',
+                  fontSize: '0.9rem',
+                  fontWeight: isActive ? 700 : 500,
+                  color: isActive ? 'var(--text-main)' : 'var(--text-muted)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  transition: 'color var(--transition-fast)',
                 }}
               >
-                {pendingCount}
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => onSelectTab('goals')}
-            className={`btn ${currentTab === 'goals' ? 'btn-primary' : 'btn-ghost'}`}
-            style={{ padding: '0.5rem 1rem' }}
-          >
-            <Layers size={17} />
-            <span>Goals & Planning</span>
-          </button>
-
-          <button
-            onClick={() => onSelectTab('review')}
-            className={`btn ${currentTab === 'review' ? 'btn-primary' : 'btn-ghost'}`}
-            style={{ padding: '0.5rem 1rem' }}
-          >
-            <RotateCcw size={17} />
-            <span>Weekly Review</span>
-          </button>
-
-          <button
-            onClick={() => onSelectTab('balance')}
-            className={`btn ${currentTab === 'balance' ? 'btn-primary' : 'btn-ghost'}`}
-            style={{ padding: '0.5rem 1rem' }}
-          >
-            <Scale size={17} />
-            <span>Balance & Trade-offs</span>
-          </button>
+                <span>{item.label}</span>
+                {item.badge !== undefined && (
+                  <span
+                    style={{
+                      background: 'rgba(59, 130, 246, 0.25)',
+                      color: '#60a5fa',
+                      fontSize: '0.7rem',
+                      fontWeight: 700,
+                      padding: '0.05rem 0.4rem',
+                      borderRadius: 'var(--radius-full)',
+                    }}
+                  >
+                    {item.badge}
+                  </span>
+                )}
+                {isActive && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: -6,
+                      left: '20%',
+                      right: '20%',
+                      height: 2,
+                      background: 'var(--primary)',
+                      borderRadius: 2,
+                      boxShadow: '0 0 10px var(--primary)',
+                    }}
+                  />
+                )}
+              </button>
+            );
+          })}
         </nav>
 
-        {/* Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+        {/* Right Utility Controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <button
             onClick={handleSeed}
             disabled={seeding}
             className="btn btn-secondary"
             title="Reload realistic sample goals and actions"
-            style={{ padding: '0.45rem 0.8rem', fontSize: '0.8rem' }}
+            style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', borderRadius: 'var(--radius-full)' }}
           >
-            <Sparkles size={15} color="#fbbf24" />
+            <Sparkles size={14} color="#fbbf24" />
             <span className="seed-text">{seeding ? 'Seeding...' : 'Demo Data'}</span>
           </button>
 
@@ -200,25 +190,44 @@ export const Layout: FC<LayoutProps> = ({
             title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} mode`}
             aria-label="Toggle Theme"
           >
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
           </button>
+
+          {/* User Profile Initial Chip (matching mockup) */}
+          <div
+            style={{
+              width: 34,
+              height: 34,
+              borderRadius: '50%',
+              background: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid var(--border-subtle)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              color: 'var(--text-main)',
+            }}
+          >
+            ME
+          </div>
         </div>
       </header>
 
-      {/* Main Content Area */}
+      {/* Main View Container */}
       <main
         style={{
           flex: 1,
-          maxWidth: '1200px',
+          maxWidth: '1180px',
           width: '100%',
           margin: '0 auto',
-          padding: '1.75rem 1.25rem 6rem 1.25rem',
+          padding: '2rem 1.5rem 6rem 1.5rem',
         }}
       >
         {children}
       </main>
 
-      {/* Mobile Sticky Bottom Navigation (FDR §3: Touch & responsive contract) */}
+      {/* Mobile Sticky Bottom Nav */}
       <nav
         className="mobile-bottom-nav glass-panel"
         style={{
@@ -232,91 +241,38 @@ export const Layout: FC<LayoutProps> = ({
           borderBottom: 'none',
           display: 'none',
           justifyContent: 'space-around',
-          padding: '0.4rem 0.5rem calc(0.4rem + env(safe-area-inset-bottom))',
+          padding: '0.5rem 0.5rem calc(0.5rem + env(safe-area-inset-bottom))',
+          background: 'rgba(12, 16, 23, 0.95)',
         }}
       >
-        <button
-          onClick={() => onSelectTab('daily')}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 2,
-            padding: '0.4rem',
-            color: currentTab === 'daily' ? 'var(--primary)' : 'var(--text-muted)',
-            fontWeight: currentTab === 'daily' ? 600 : 400,
-            fontSize: '0.72rem',
-            minHeight: 'var(--min-tap)',
-            flex: 1,
-          }}
-        >
-          <CheckCircle2 size={20} />
-          <span>Daily</span>
-        </button>
-
-        <button
-          onClick={() => onSelectTab('goals')}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 2,
-            padding: '0.4rem',
-            color: currentTab === 'goals' ? 'var(--primary)' : 'var(--text-muted)',
-            fontWeight: currentTab === 'goals' ? 600 : 400,
-            fontSize: '0.72rem',
-            minHeight: 'var(--min-tap)',
-            flex: 1,
-          }}
-        >
-          <Layers size={20} />
-          <span>Goals</span>
-        </button>
-
-        <button
-          onClick={() => onSelectTab('review')}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 2,
-            padding: '0.4rem',
-            color: currentTab === 'review' ? 'var(--primary)' : 'var(--text-muted)',
-            fontWeight: currentTab === 'review' ? 600 : 400,
-            fontSize: '0.72rem',
-            minHeight: 'var(--min-tap)',
-            flex: 1,
-          }}
-        >
-          <RotateCcw size={20} />
-          <span>Review</span>
-        </button>
-
-        <button
-          onClick={() => onSelectTab('balance')}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 2,
-            padding: '0.4rem',
-            color: currentTab === 'balance' ? 'var(--primary)' : 'var(--text-muted)',
-            fontWeight: currentTab === 'balance' ? 600 : 400,
-            fontSize: '0.72rem',
-            minHeight: 'var(--min-tap)',
-            flex: 1,
-          }}
-        >
-          <Scale size={20} />
-          <span>Balance</span>
-        </button>
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = currentTab === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => onSelectTab(item.id)}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 3,
+                padding: '0.35rem',
+                color: isActive ? 'var(--primary)' : 'var(--text-muted)',
+                fontWeight: isActive ? 700 : 500,
+                fontSize: '0.72rem',
+                flex: 1,
+                minHeight: 'var(--min-tap)',
+              }}
+            >
+              <Icon size={19} />
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
       </nav>
 
-      {/* Media Query Styling */}
       <style>{`
-        @media (min-width: 900px) {
-          .loop-badge { display: flex !important; }
-        }
         @media (max-width: 768px) {
           .desktop-nav { display: none !important; }
           .mobile-bottom-nav { display: flex !important; }
